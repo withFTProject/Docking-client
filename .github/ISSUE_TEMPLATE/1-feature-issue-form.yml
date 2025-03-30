@@ -1,23 +1,32 @@
-name: '🐶 기능 추가 이슈'
+name: ' 기능 추가 이슈'
 description: '새로운 기능 추가, 기존 기능 변경 시 작성합니다.'
 labels: [feature]
-title: '🐶 이슈 제목'
+title: ' 편지쓰기 페이지'
 assignees:
   - octocat
 body:
   - type: textarea
     id: description
     attributes:
-      label: '📌 Description'
-      description: '이슈에 대해서 상세히 설명해주세요'
+      label: ' Description'
+      description: '이슈에 대해 상세히 설명해주세요 ( 편지지 색상 선택 기능 추가 등)'
     validations:
       required: true
 
   - type: textarea
     id: tasks
     attributes:
-      label: '✅ Todo'
-      description: '해당 이슈에 대해 필요한 작업목록을 작성해주세요'
-      placeholder: '- [ ] Task1'
+      label: ' Todo'
+      description: '이슈 해결을 위해 필요한 작업 목록을 작성해주세요'
+      placeholder: '- [ ] 편지지 배경색 스크롤 구현\n- [ ] 저장 버튼 클릭 시 이동 처리'
+    validations:
+      required: false
+
+  - type: input
+    id: relatedPage
+    attributes:
+      label: ' 관련된 페이지'
+      description: '작업과 관련된 페이지명을 입력해주세요 ( WriteLetter.jsx)'
+      placeholder: 'WriteLetter.jsx'
     validations:
       required: false
