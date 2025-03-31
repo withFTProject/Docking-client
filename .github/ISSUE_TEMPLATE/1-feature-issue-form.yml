@@ -30,3 +30,104 @@ body:
       placeholder: 'WriteLetter.jsx'
     validations:
       required: false
+
+
+
+
+
+
+title: '행성 선택 SelectPlanet 구현'
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: 'Description'
+      description: '사용자가 행성을 고르고 저장한 편지 데이터를 함께 넘기는 기능 구현'
+    validations:
+      required: true
+
+  - type: textarea
+    id: tasks
+    attributes:
+      label: 'Todo'
+      placeholder: |
+        - [x] 행성 선택 UI 구현
+        - [x] 클릭한 행성 강조 스타일 적용
+        - [x] draftLetter 불러오기
+        - [x] 편지 내용과 함께 SolarSystem 페이지로 이동
+    validations:
+      required: false
+
+  - type: input
+    id: relatedPage
+    attributes:
+      label: '관련된 페이지'
+      placeholder: 'SelectPlanet.jsx'
+
+
+
+
+title: 'SolarSystem 페이지 행성 배치 및 편지 표시 기능'
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: 'Description'
+      description: '랜덤한 위치에 행성 배치, 클릭 시 편지 표시 및 수정/삭제 기능 구현'
+    validations:
+      required: true
+
+  - type: textarea
+    id: tasks
+    attributes:
+      label: 'Todo'
+      placeholder: |
+        - [x] 행성 이미지 랜덤 위치 배치 (궤도 범위 안)
+        - [x] 편지지 색상 적용
+        - [x] 모달 내 닫기/수정/삭제 버튼 구현
+        - [x] 삭제 시 localStorage 동기화
+        - [x] 수정 시 draftLetter 재저장 후 WriteLetter로 이동
+    validations:
+      required: false
+
+  - type: input
+    id: relatedPage
+    attributes:
+      label: '관련된 페이지'
+      placeholder: 'SolarSystem.jsx'
+
+
+
+
+
+title: '태양계 배경 리사이즈 및 행성 이미지 투명 배경 처리'
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: 'Description'
+      description: '태양계 배경을 16:9로 리사이즈, 행성 이미지 배경 투명화'
+    validations:
+      required: true
+
+  - type: textarea
+    id: tasks
+    attributes:
+      label: 'Todo'
+      placeholder: |
+        - [x] 태양계 배경 중앙 정렬 및 화면 비율 맞춤
+        - [x] PNG 행성 이미지 배경 제거 (투명 처리)
+        - [x] 흰 테두리 제거
+    validations:
+      required: false
+
+  - type: input
+    id: relatedPage
+    attributes:
+      label: '관련된 페이지'
+      placeholder: 'space.png / 행성 이미지 / SolarSystem.jsx'
+
+
+
+
+      
