@@ -1,22 +1,14 @@
-
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const OAuthCallback = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // 로그인 성공 시 쿠키 확인
-    const token = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("Authorization="));
+    navigate("/after-login");
+  }, [navigate]); // ✅ 이렇게 하면 경고 사라짐!
 
-    if (token) {
-      navigate("/after-login");
-    }
-  }, []);
-
-  return <div>로그인 처리 중...</div>;
+  return <div>카카오 로그인 중입니다...</div>;
 };
 
 export default OAuthCallback;
