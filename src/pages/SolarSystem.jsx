@@ -3,47 +3,63 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { predefinedPositions } from "../utils/predefinedPositions";
 
 const PAGE_LIMIT = 15;
-const getStorageKey = (page) => `solarPlanets_page_${page}`;
-const savePlanets = (planets, page) => localStorage.setItem(getStorageKey(page), JSON.stringify(planets));
-const loadPlanets = (page) => JSON.parse(localStorage.getItem(getStorageKey(page))) || [];
 
 const SolarSystem = () => {
   const location = useLocation();
   const navigate = useNavigate();
-
   const [currentPage, setCurrentPage] = useState(location.state?.activePage ?? 0);
   const [planets, setPlanets] = useState([]);
   const [selectedPlanet, setSelectedPlanet] = useState(null);
 
   useEffect(() => {
-    let loaded = loadPlanets(currentPage);
+    const token = localStorage.getItem("token");
+    const fetchPlanets = async () => {
+      try {
+        const res = await fetch(`http://localhost:8080/planet/main?page=${currentPage}&size=${PAGE_LIMIT}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json();
+        const content = data.result?.content || [];
 
-    // 편지 수정 후 돌아온 경우: draftLetter에 있는 내용을 반영
-    const draft = JSON.parse(localStorage.getItem("draftLetter"));
-    if (draft && draft.id) {
-      // 기존 행성 업데이트
-      loaded = loaded.map(p => (p.id === draft.id ? draft : p));
-      savePlanets(loaded, currentPage);
-      localStorage.removeItem("draftLetter");
-    }
+        // 좌표 부여
+        const planetsWithPos = content.map((p, i) => ({
+          id: p.letterId,
+          src: p.planet,
+          nickname: p.nickname || "익명",
+          message: p.description || "내용 없음",
+          paperColor: p.paperColor || "#fff0f0",
+          position: predefinedPositions[i],
+        }));
+        setPlanets(planetsWithPos);
+      } catch (error) {
+        console.error("행성 로드 실패", error);
+      }
+    };
 
-    // 새 행성 추가 시
-    if (location.state?.newPlanet) {
-      const filtered = loaded.filter(p => p.id !== location.state.newPlanet.id);
-      const updated = [...filtered, location.state.newPlanet];
-      savePlanets(updated, currentPage);
-      setPlanets(updated);
-      setTimeout(() => navigate(".", { replace: true }), 0);
-    } else {
-      setPlanets(loaded);
-    }
-  }, [location, currentPage, navigate]);
+    fetchPlanets();
+  }, [currentPage]);
 
   const handleDelete = (id) => {
-    const updated = planets.filter(p => p.id !== id);
-    savePlanets(updated, currentPage);
-    setPlanets(updated);
-    setSelectedPlanet(null);
+    const token = localStorage.getItem("token");
+    fetch(`http://localhost:8080/letter/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => {
+        if (res.ok) {
+          console.log("✅ 편지 삭제 완료");
+          setPlanets((prev) => prev.filter((p) => p.id !== id));
+          setSelectedPlanet(null);
+        } else {
+          console.error("❌ 삭제 실패");
+        }
+      })
+      .catch((err) => console.error("에러:", err));
   };
 
   const handleEdit = () => {
@@ -53,7 +69,6 @@ const SolarSystem = () => {
     }));
     navigate("/write-letter");
   };
-  
 
   return (
     <div style={styles.wrapper}>
@@ -65,21 +80,20 @@ const SolarSystem = () => {
             onClick={() => setSelectedPlanet(planet)}
             style={{
               ...styles.planet,
-              left: `calc(50% + ${predefinedPositions[idx].x}px)`,
-              top: `calc(50% + ${predefinedPositions[idx].y}px)`,
+              left: `calc(50% + ${planet.position.x}px)`,
+              top: `calc(50% + ${planet.position.y}px)`,
             }}
           />
           <div style={{
             ...styles.nameTag,
-            left: `calc(50% + ${predefinedPositions[idx].x}px)`,
-            top: `calc(50% + ${predefinedPositions[idx].y + 35}px)`
+            left: `calc(50% + ${planet.position.x}px)`,
+            top: `calc(50% + ${planet.position.y + 35}px)`
           }}>
             {planet.nickname}
           </div>
         </div>
       ))}
 
-      {/* 편지 모달 */}
       {selectedPlanet && (
         <div style={styles.modalOverlay}>
           <div style={{ ...styles.letterBox, backgroundColor: selectedPlanet.paperColor }}>
@@ -94,7 +108,6 @@ const SolarSystem = () => {
         </div>
       )}
 
-      {/* 페이지 전환 */}
       <div style={styles.pageControl}>
         <button
           disabled={currentPage === 0}
@@ -104,7 +117,6 @@ const SolarSystem = () => {
           이전 페이지
         </button>
         <button
-          disabled={planets.length < PAGE_LIMIT}
           onClick={() => setCurrentPage(currentPage + 1)}
           style={styles.button}
         >
@@ -195,5 +207,6 @@ const styles = {
 };
 
 export default SolarSystem;
+
 
 

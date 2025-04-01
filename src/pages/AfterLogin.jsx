@@ -1,8 +1,21 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const AfterLogin = () => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+
+    if (token) {
+      localStorage.setItem("token", token); // ✅ 토큰 저장
+      console.log("✅ 토큰 저장됨:", token);
+    } else {
+      alert("❌ 로그인 토큰이 없습니다. 다시 로그인해주세요.");
+      navigate("/login");
+    }
+  }, [navigate]);
 
   const handleWrite = () => {
     navigate("/write");
@@ -32,7 +45,7 @@ const styles = {
     marginBottom: "55px",
   },
   writeButton: {
-    backgroundColor: "#ffe4ec", // 연한 핑크
+    backgroundColor: "#ffe4ec",
     border: "none",
     padding: "12px 24px",
     fontSize: "16px",

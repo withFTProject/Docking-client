@@ -1,20 +1,16 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 
 const Login = () => {
-  const navigate = useNavigate();
-
   const handleLogin = () => {
-    console.log("✅ 버튼 클릭됨"); // ← 이게 터미널에 보이면 진짜 여기 실행된 것!
-    navigate("/after-login");
+    // ✅ 카카오 로그인 URL로 리디렉션
+    window.location.href = "http://localhost:8080/oauth2/authorization/kakao";
   };
-  
 
   return (
-    <div style={styles.container}>
+    <div style={styles.wrapper}>
       <img src="/logo.png" alt="logo" style={styles.logo} />
-      <button onClick={handleLogin} style={styles.kakaoButton}>
-        <img src="/kakao_icon.png" alt="카카오 아이콘" style={styles.kakaoIcon} />
+      <button style={styles.kakaoButton} onClick={handleLogin}>
+        <img src="/kakao_icon.png" alt="카카오 아이콘" style={styles.icon} />
         카카오 로그인
       </button>
     </div>
@@ -22,37 +18,35 @@ const Login = () => {
 };
 
 const styles = {
-  container: {
+  wrapper: {
     height: "100vh",
-    backgroundColor: "white",
     display: "flex",
     flexDirection: "column",
     justifyContent: "center",
-    alignItems: "center",
+    alignItems: "center", // ✅ 수직 수평 가운데 정렬
+    backgroundColor: "white",
   },
   logo: {
-    width: "380px",
-    marginBottom: "55px",
+    width: "320px",
+    marginBottom: "40px",
   },
   kakaoButton: {
     backgroundColor: "#FEE500",
     border: "none",
     padding: "12px 24px",
     fontSize: "16px",
+    fontWeight: "bold",
     borderRadius: "8px",
     cursor: "pointer",
-    fontWeight: "bold",
     display: "flex",
     alignItems: "center",
-    gap: "8px",
+    gap: "10px",
+    boxShadow: "0 2px 5px rgba(0, 0, 0, 0.15)",
   },
-  kakaoIcon: {
+  icon: {
     width: "20px",
     height: "20px",
   },
 };
 
 export default Login;
-
-
-
