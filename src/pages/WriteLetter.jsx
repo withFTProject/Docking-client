@@ -107,8 +107,8 @@ const styles = {
     fontWeight: "bold",
     marginBottom: "20px",
     marginLeft: "275px", // ✅ 이미지처럼 좀 안쪽으로
-    marginTop: "100px", // ← 원하는 만큼 조정
-    marginBottom: "50px",    // ✅ 아래 여백도 늘림
+    marginTop: "70px", // ← 원하는 만큼 조정
+    marginBottom: "30px",    // ✅ 아래 여백도 늘림
   },
   
   textarea: {

@@ -1,16 +1,18 @@
 // src/utils/predefinedPositions.js
-export const predefinedPositions = (() => {
-  const orbits = [140, 185, 230, 275]; // 각 궤도 중심 거리(px)
-  const positions = [];
-
-  orbits.forEach((radius) => {
-    for (let i = 0; i < 6; i++) {
-      const angle = (Math.PI * 2 * i) / 6;
-      const x = Math.cos(angle) * radius;
-      const y = Math.sin(angle) * radius * 0.65; // 타원형 조정
-      positions.push({ x: Math.round(x), y: Math.round(y) });
-    }
-  });
-
-  return positions;
-})();
+export const predefinedPositions = [
+  { x: -20, y: -300 },      // 위
+  { x: 380, y: -200 },
+  { x: 280, y: -30 },
+  { x: 240, y: 230 },
+  { x: -20, y: 260 },       // 아래
+  { x: -300, y: 200 },
+  { x: -350, y: -100 },
+  { x: -230, y: -200 },
+  { x: 190, y: -150 },
+  { x: 330, y: 100 },
+  { x: 90, y: 190 },
+  { x: -350, y: -220 },
+  { x: -190, y: 90 },
+  { x: -70, y: -140 },
+  { x: 100, y: 50 },         // 중앙
+];
