@@ -2,8 +2,8 @@ import React from "react";
 
 const Login = () => {
   const handleLogin = () => {
-    // ✅ 카카오 로그인 URL로 리디렉션
-    window.location.href = "http://localhost:8080/oauth2/authorization/kakao";
+    // localhost 주소를 백엔드 ngrok URL로 변경
+    window.location.href = "https://7dd6-210-94-220-229.ngrok-free.app/oauth2/authorization/kakao";
   };
 
   return (

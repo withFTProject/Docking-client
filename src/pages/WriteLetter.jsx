@@ -66,6 +66,8 @@ const WriteLetter = () => {
   //     console.error("❌ 저장 실패:", error.message);
   //   }
   // };
+
+
   const handleSave = async () => {
     if (!nickname || !message) {
       alert("이름과 편지를 모두 작성해주세요!");
