@@ -23,22 +23,32 @@ const SelectPlanet = () => {
       alert("편지 작성과 행성 선택을 완료해주세요!");
       return;
     }
-
+    
+    if (!draft.id) {
+      alert("편지 정보가 올바르게 저장되지 않았습니다. 편지 작성 페이지로 돌아가 다시 시도해주세요.");
+      navigate('/write');
+      return;
+    }
+  
     const position = draft.position || predefinedPositions[0];
     const selectedPlanetUrl = planetImages[selected];
-
+    const planetNumber = selected + 1; // 선택한 행성 번호 (1~16)
+  
     try {
-      await choosePlanet(draft.id, selectedPlanetUrl);
-
+      console.log('행성 선택 API 호출, letterId:', draft.id, '행성 번호:', planetNumber);
+      // 행성 번호를 전달
+      await choosePlanet(draft.id, planetNumber.toString());
+      
       const newPlanet = {
         id: draft.id,
         src: selectedPlanetUrl,
+        planetNumber: planetNumber, // 행성 번호도 저장
         nickname: draft.nickname,
         message: draft.message,
         paperColor: draft.paperColor,
         position,
       };
-
+      
       localStorage.setItem("selectedPlanet", JSON.stringify(newPlanet));
       navigate("/solar-system", {
         state: {

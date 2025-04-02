@@ -16,44 +16,90 @@ const WriteLetter = () => {
       setNickname(draft.nickname);
       setMessage(draft.message);
       setPaperColor(draft.paperColor);
-      setLetterId(draft.id);
-      setIsEdit(true);
+      // setLetterId(draft.id);
+      // setIsEdit(true);
     }
   }, []);
 
   const paperColors = ["#fff0f0", "#ebffe6", "#e6f7ff", "#f1e6ff", "#ffe6fa", "#fffbe6", "#f9ffe6", "#D4D4D4"];
 
+  // const handleSave = async () => {
+  //   if (!nickname || !message) {
+  //     alert("이름과 편지를 모두 작성해주세요!");
+  //     return;
+  //   }
+    
+  //   const letterData = {
+  //     title: nickname,
+  //     description: message,
+  //   };
+    
+  //   try {
+  //     let response;
+  //     if (isEdit && letterId) {
+  //       response = await updateLetter(letterId, letterData);
+  //       console.log("✅ 편지 수정 완료", response);
+  //     } else {
+  //       response = await createLetter(letterData);
+  //       console.log("✅ 편지 등록 완료", response);
+  //     }
+      
+  //     const savedId = response.letterId || response.id;
+  //     console.log("저장된 편지 ID:", savedId);
+      
+  //     if (!savedId) {
+  //       console.error("❌ 편지 ID가 응답에 없습니다", response);
+  //       alert("편지 저장에 문제가 있습니다. 다시 시도해주세요.");
+  //       return;
+  //     }
+      
+  //     localStorage.setItem("draftLetter", JSON.stringify({
+  //       id: savedId,
+  //       nickname,
+  //       message,
+  //       paperColor,
+  //     }));
+      
+  //     localStorage.setItem("letterId", savedId);
+  //     navigate("/select-planet");
+  //   } catch (error) {
+  //     console.error("❌ 저장 실패:", error.message);
+  //   }
+  // };
   const handleSave = async () => {
     if (!nickname || !message) {
       alert("이름과 편지를 모두 작성해주세요!");
       return;
     }
-
+    
     const letterData = {
       title: nickname,
       description: message,
-      sticker: "none",
     };
-
+    
     try {
-      let response;
-      if (isEdit && letterId) {
-        await updateLetter(letterId, letterData);
-        response = { id: letterId };
-        console.log("✅ 편지 수정 완료");
-      } else {
-        response = await createLetter(letterData);
-        console.log("✅ 편지 등록 완료");
+      // 항상 새 편지로 등록
+      const response = await createLetter(letterData);
+      console.log("✅ 편지 등록 완료", response);
+      
+      const savedId = response.letterId || response.id;
+      console.log("저장된 편지 ID:", savedId);
+      
+      if (!savedId) {
+        console.error("❌ 편지 ID가 응답에 없습니다", response);
+        alert("편지 저장에 문제가 있습니다. 다시 시도해주세요.");
+        return;
       }
-
+      
+      // 새로운 편지 ID로 항상 업데이트
       localStorage.setItem("draftLetter", JSON.stringify({
-        id: response.id,
+        id: savedId,
         nickname,
         message,
         paperColor,
       }));
-
-      localStorage.setItem("letterId", response.id); // 행성 선택 시 사용
+      
+      localStorage.setItem("letterId", savedId);
       navigate("/select-planet");
     } catch (error) {
       console.error("❌ 저장 실패:", error.message);

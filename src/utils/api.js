@@ -22,6 +22,9 @@ const apiRequest = async (endpoint, method = 'GET', body = null) => {
     const errorData = await response.json().catch(() => ({}));
     throw new Error(errorData.message || 'API 요청 실패');
   }
+  if (response.status === 204) {
+    return null; // 빈 응답 본문이므로 null 반환
+  }
   return response.json();
 };
 
@@ -34,5 +37,7 @@ export const deleteLetter = (id) => apiRequest(`/letter/${id}`, 'DELETE');
 export const getPlanets = (page = 0, size = 15) =>
   apiRequest(`/planet/main?page=${page}&size=${size}`);
 
-export const choosePlanet = (letterId, planetUrl) =>
-  apiRequest(`/planet/${letterId}`, 'PUT', { planetUrl });
+
+
+export const choosePlanet = (letterId, planetNumber) => 
+    apiRequest(`/planet/${letterId}`, 'PUT', { planetUrl: planetNumber });

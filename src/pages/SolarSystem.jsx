@@ -1,9 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { predefinedPositions } from "../utils/predefinedPositions";
-import { getPlanets, deleteLetter } from "../utils/api";
+import { getPlanets, deleteLetter, getLetter } from "../utils/api"; 
 
 const PAGE_LIMIT = 15;
+
+const planetImages = Array.from(
+  { length: 16 },
+  (_, i) => process.env.PUBLIC_URL + `/p${i + 1}.png`
+);
 
 const SolarSystem = () => {
   const location = useLocation();
@@ -12,34 +17,76 @@ const SolarSystem = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [planets, setPlanets] = useState([]);
   const [selectedPlanet, setSelectedPlanet] = useState(null);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     fetchPlanets(currentPage);
   }, [currentPage]);
 
+  // useEffect(() => {
+  //   const newPlanet = location.state?.newPlanet;
+  //   if (newPlanet) {
+  //     setPlanets((prev) => [...prev, newPlanet]);
+  //     setTimeout(() => navigate(".", { replace: true }), 0);
+  //   }
+  // }, [location, navigate]);
   useEffect(() => {
+    // 새 행성이 있어도 기존 목록에 추가하지 않음
     const newPlanet = location.state?.newPlanet;
     if (newPlanet) {
-      setPlanets((prev) => [...prev, newPlanet]);
-      setTimeout(() => navigate(".", { replace: true }), 0);
+      setTimeout(() => {
+        navigate(".", { replace: true });
+        fetchPlanets(currentPage);
+      }, 0);
     }
   }, [location, navigate]);
 
   const fetchPlanets = async (page) => {
     try {
+      // 행성 목록 조회
       const res = await getPlanets(page, PAGE_LIMIT);
-      const planetList = res.result.content;
-
-      // 위치 좌표 부여
-      const withPosition = planetList.map((p, i) => ({
-        id: p.id,
-        src: p.planet,
-        nickname: p.title,
-        message: p.description,
-        paperColor: p.color || "#fff", // 백엔드에서 색상 포함 시 반영
-        position: predefinedPositions[i],
-      }));
-      setPlanets(withPosition);
+      console.log("행성 목록 응답:", res);
+      
+      if (res.isSuccess && res.result && res.result.content) {
+        // 여기에 totalPages 설정 추가
+        setTotalPages(res.result.totalPages || 1);
+        
+        const planetList = res.result.content;
+        
+        // 각 행성별로 상세 정보 가져오기
+        const planetsWithDetails = await Promise.all(
+          planetList.map(async (p, i) => {
+            try {
+              // 백엔드에서 받은 planet 필드가 행성 번호인 경우
+              const planetNumber = parseInt(p.planet) || 1;
+              // 행성 번호로 이미지 경로 생성 (1~16 사이로 제한)
+              const planetIndex = Math.min(Math.max(planetNumber, 1), 16) - 1;
+              const planetImage = planetImages[planetIndex];
+              
+              // 개별 편지 정보는 필요할 때만 가져오기
+              return {
+                id: p.id,
+                src: planetImage, // 선택된 행성 이미지 사용
+                nickname: p.title,
+                position: predefinedPositions[i % predefinedPositions.length],
+              };
+            } catch (err) {
+              console.error(`행성 ${p.id} 처리 실패:`, err);
+              return {
+                id: p.id,
+                src: planetImages[0], // 기본 행성 이미지
+                nickname: p.title || "행성",
+                position: predefinedPositions[i % predefinedPositions.length],
+              };
+            }
+          })
+        );
+        
+        // 기존 행성이 아닌 새로운 행성 목록으로 설정
+        setPlanets(planetsWithDetails);
+      } else {
+        console.error("🚨 행성 목록 응답 형식 오류:", res);
+      }
     } catch (err) {
       console.error("🚨 행성 목록 불러오기 실패:", err);
     }
@@ -52,6 +99,26 @@ const SolarSystem = () => {
       setSelectedPlanet(null);
     } catch (error) {
       console.error("❌ 삭제 실패:", error.message);
+    }
+  };
+
+  const fetchPlanetDetails = async (planet) => {
+    try {
+      const letterDetail = await getLetter(planet.id);
+      console.log(`편지 ${planet.id} 상세정보:`, letterDetail);
+      
+      setSelectedPlanet({
+        ...planet,
+        message: letterDetail.description || "편지 내용을 불러올 수 없습니다.",
+        paperColor: letterDetail.color || "#fff"
+      });
+    } catch (error) {
+      console.error(`편지 ${planet.id} 상세정보 가져오기 실패:`, error);
+      setSelectedPlanet({
+        ...planet,
+        message: "편지 내용을 불러올 수 없습니다.",
+        paperColor: "#fff"
+      });
     }
   };
 
@@ -76,7 +143,7 @@ const SolarSystem = () => {
           <img
             src={planet.src}
             alt="planet"
-            onClick={() => setSelectedPlanet(planet)}
+            onClick={() => fetchPlanetDetails(planet)}
             style={{
               ...styles.planet,
               left: `calc(50% + ${planet.position.x}px)`,
@@ -102,7 +169,7 @@ const SolarSystem = () => {
             <div style={styles.modalHeader}>To. {selectedPlanet.nickname}</div>
             <div style={styles.modalMessage}>{selectedPlanet.message}</div>
             <div style={styles.modalButtons}>
-              <button style={styles.button} onClick={handleEdit}>수정</button>
+              {/* <button style={styles.button} onClick={handleEdit}>수정</button> */}
               <button style={styles.button} onClick={() => handleDelete(selectedPlanet.id)}>삭제</button>
               <button style={styles.button} onClick={() => setSelectedPlanet(null)}>닫기</button>
             </div>
@@ -119,8 +186,16 @@ const SolarSystem = () => {
         >
           이전 페이지
         </button>
+        <span style={{
+          color: "white",
+          margin: "0 10px",
+          fontSize: "16px",
+          fontWeight: "bold"
+        }}>
+          페이지 {currentPage + 1}
+        </span>
         <button
-          disabled={planets.length < PAGE_LIMIT}
+          disabled={currentPage >= totalPages - 1}
           onClick={() => setCurrentPage((prev) => prev + 1)}
           style={styles.button}
         >
