@@ -1,71 +1,70 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { predefinedPositions } from "../utils/predefinedPositions";
+import { getPlanets, deleteLetter } from "../utils/api";
 
 const PAGE_LIMIT = 15;
 
 const SolarSystem = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [currentPage, setCurrentPage] = useState(location.state?.activePage ?? 0);
+
+  const [currentPage, setCurrentPage] = useState(0);
   const [planets, setPlanets] = useState([]);
   const [selectedPlanet, setSelectedPlanet] = useState(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const fetchPlanets = async () => {
-      try {
-        const res = await fetch(`http://localhost:8080/planet/main?page=${currentPage}&size=${PAGE_LIMIT}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const data = await res.json();
-        const content = data.result?.content || [];
-
-        // 좌표 부여
-        const planetsWithPos = content.map((p, i) => ({
-          id: p.letterId,
-          src: p.planet,
-          nickname: p.nickname || "익명",
-          message: p.description || "내용 없음",
-          paperColor: p.paperColor || "#fff0f0",
-          position: predefinedPositions[i],
-        }));
-        setPlanets(planetsWithPos);
-      } catch (error) {
-        console.error("행성 로드 실패", error);
-      }
-    };
-
-    fetchPlanets();
+    fetchPlanets(currentPage);
   }, [currentPage]);
 
-  const handleDelete = (id) => {
-    const token = localStorage.getItem("token");
-    fetch(`http://localhost:8080/letter/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    })
-      .then((res) => {
-        if (res.ok) {
-          console.log("✅ 편지 삭제 완료");
-          setPlanets((prev) => prev.filter((p) => p.id !== id));
-          setSelectedPlanet(null);
-        } else {
-          console.error("❌ 삭제 실패");
-        }
-      })
-      .catch((err) => console.error("에러:", err));
+  useEffect(() => {
+    const newPlanet = location.state?.newPlanet;
+    if (newPlanet) {
+      setPlanets((prev) => [...prev, newPlanet]);
+      setTimeout(() => navigate(".", { replace: true }), 0);
+    }
+  }, [location, navigate]);
+
+  const fetchPlanets = async (page) => {
+    try {
+      const res = await getPlanets(page, PAGE_LIMIT);
+      const planetList = res.result.content;
+
+      // 위치 좌표 부여
+      const withPosition = planetList.map((p, i) => ({
+        id: p.id,
+        src: p.planet,
+        nickname: p.title,
+        message: p.description,
+        paperColor: p.color || "#fff", // 백엔드에서 색상 포함 시 반영
+        position: predefinedPositions[i],
+      }));
+      setPlanets(withPosition);
+    } catch (err) {
+      console.error("🚨 행성 목록 불러오기 실패:", err);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await deleteLetter(id);
+      setPlanets((prev) => prev.filter((p) => p.id !== id));
+      setSelectedPlanet(null);
+    } catch (error) {
+      console.error("❌ 삭제 실패:", error.message);
+    }
   };
 
   const handleEdit = () => {
+    if (!selectedPlanet) return;
     const { id, nickname, message, paperColor, src, position } = selectedPlanet;
     localStorage.setItem("draftLetter", JSON.stringify({
-      id, nickname, message, paperColor, src, position,
+      id,
+      nickname,
+      message,
+      paperColor,
+      src,
+      position,
     }));
     navigate("/write-letter");
   };
@@ -81,19 +80,22 @@ const SolarSystem = () => {
             style={{
               ...styles.planet,
               left: `calc(50% + ${planet.position.x}px)`,
-              top: `calc(50% + ${planet.position.y}px)`,
+              top: `calc(50% + ${planet.position.y}px)`
             }}
           />
-          <div style={{
-            ...styles.nameTag,
-            left: `calc(50% + ${planet.position.x}px)`,
-            top: `calc(50% + ${planet.position.y + 35}px)`
-          }}>
+          <div
+            style={{
+              ...styles.nameTag,
+              left: `calc(50% + ${planet.position.x}px)`,
+              top: `calc(50% + ${planet.position.y + 35}px)`
+            }}
+          >
             {planet.nickname}
           </div>
         </div>
       ))}
 
+      {/* 편지 모달 */}
       {selectedPlanet && (
         <div style={styles.modalOverlay}>
           <div style={{ ...styles.letterBox, backgroundColor: selectedPlanet.paperColor }}>
@@ -108,16 +110,18 @@ const SolarSystem = () => {
         </div>
       )}
 
+      {/* 페이지 전환 */}
       <div style={styles.pageControl}>
         <button
           disabled={currentPage === 0}
-          onClick={() => setCurrentPage(currentPage - 1)}
+          onClick={() => setCurrentPage((prev) => prev - 1)}
           style={styles.button}
         >
           이전 페이지
         </button>
         <button
-          onClick={() => setCurrentPage(currentPage + 1)}
+          disabled={planets.length < PAGE_LIMIT}
+          onClick={() => setCurrentPage((prev) => prev + 1)}
           style={styles.button}
         >
           다음 페이지
@@ -156,13 +160,15 @@ const styles = {
   },
   modalOverlay: {
     position: "fixed",
-    top: 0, left: 0,
-    width: "100vw", height: "100vh",
+    top: 0,
+    left: 0,
+    width: "100vw",
+    height: "100vh",
     backgroundColor: "rgba(0,0,0,0.7)",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    zIndex: 10
+    zIndex: 10,
   },
   letterBox: {
     width: "550px",
@@ -177,16 +183,16 @@ const styles = {
   modalHeader: {
     fontSize: "26px",
     fontWeight: "bold",
-    marginBottom: "20px"
+    marginBottom: "20px",
   },
   modalMessage: {
     whiteSpace: "pre-wrap",
-    marginBottom: "20px"
+    marginBottom: "20px",
   },
   modalButtons: {
     display: "flex",
     gap: "10px",
-    justifyContent: "flex-end"
+    justifyContent: "flex-end",
   },
   button: {
     backgroundColor: "#ffee77",
@@ -195,7 +201,7 @@ const styles = {
     borderRadius: "10px",
     fontWeight: "bold",
     fontSize: "16px",
-    cursor: "pointer"
+    cursor: "pointer",
   },
   pageControl: {
     position: "absolute",
@@ -203,7 +209,7 @@ const styles = {
     right: "20px",
     display: "flex",
     gap: "12px",
-  }
+  },
 };
 
 export default SolarSystem;

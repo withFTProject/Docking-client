@@ -1,45 +1,64 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { createLetter, updateLetter } from "../utils/api";
 
 const WriteLetter = () => {
-  // 상태 선언
   const [nickname, setNickname] = useState("");
   const [message, setMessage] = useState("");
   const [paperColor, setPaperColor] = useState("#ffffff");
+  const [isEdit, setIsEdit] = useState(false);
+  const [letterId, setLetterId] = useState(null);
   const navigate = useNavigate();
 
-  // ✅ useEffect는 함수 안에, return 밖에 위치해야 함
   useEffect(() => {
     const draft = JSON.parse(localStorage.getItem("draftLetter"));
     if (draft) {
       setNickname(draft.nickname);
       setMessage(draft.message);
       setPaperColor(draft.paperColor);
+      setLetterId(draft.id);
+      setIsEdit(true);
     }
   }, []);
 
+  const paperColors = ["#fff0f0", "#ebffe6", "#e6f7ff", "#f1e6ff", "#ffe6fa", "#fffbe6", "#f9ffe6", "#D4D4D4"];
 
-
-  const paperColors = [
-    "#fff0f0", "#ebffe6", "#e6f7ff", "#f1e6ff", "#ffe6fa", "#fffbe6", "#f9ffe6", "#D4D4D4"
-  ];
-
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!nickname || !message) {
       alert("이름과 편지를 모두 작성해주세요!");
       return;
     }
-  
-    // ✨ localStorage에 저장
-    localStorage.setItem("draftLetter", JSON.stringify({
-      nickname,
-      message,
-      paperColor
-    }));
-  
-    navigate("/select-planet");
+
+    const letterData = {
+      title: nickname,
+      description: message,
+      sticker: "none",
+    };
+
+    try {
+      let response;
+      if (isEdit && letterId) {
+        await updateLetter(letterId, letterData);
+        response = { id: letterId };
+        console.log("✅ 편지 수정 완료");
+      } else {
+        response = await createLetter(letterData);
+        console.log("✅ 편지 등록 완료");
+      }
+
+      localStorage.setItem("draftLetter", JSON.stringify({
+        id: response.id,
+        nickname,
+        message,
+        paperColor,
+      }));
+
+      localStorage.setItem("letterId", response.id); // 행성 선택 시 사용
+      navigate("/select-planet");
+    } catch (error) {
+      console.error("❌ 저장 실패:", error.message);
+    }
   };
-  
 
   return (
     <div style={styles.container}>
@@ -50,14 +69,12 @@ const WriteLetter = () => {
         onChange={(e) => setNickname(e.target.value)}
         style={styles.input}
       />
-
       <textarea
         placeholder="편지를 작성해주세요"
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         style={{ ...styles.textarea, backgroundColor: paperColor }}
       />
-
       <div style={styles.colorScroll}>
         {paperColors.map((color) => (
           <div
@@ -71,33 +88,20 @@ const WriteLetter = () => {
           />
         ))}
       </div>
-
       <button onClick={handleSave} style={styles.saveBtn}>저장</button>
     </div>
   );
 };
 
 const styles = {
-
-  page: {
-    fontFamily: "'Noto Sans KR', sans-serif",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    padding: "40px 20px",
-    backgroundColor: "#ffffff",
-    minHeight: "100vh",
-  },
-
   container: {
     height: "100vh",
     padding: "40px",
     backgroundColor: "#ffffff",
     display: "flex",
     flexDirection: "column",
-    alignItems: "flex-start", // ✅ 좌측 정렬로 변경
+    alignItems: "flex-start",
   },
-  
   input: {
     padding: "12px 24px",
     fontSize: "18px",
@@ -106,16 +110,14 @@ const styles = {
     backgroundColor: "#ffee77",
     fontWeight: "bold",
     marginBottom: "20px",
-    marginLeft: "275px", // ✅ 이미지처럼 좀 안쪽으로
-    marginTop: "70px", // ← 원하는 만큼 조정
-    marginBottom: "30px",    // ✅ 아래 여백도 늘림
+    marginLeft: "275px",
+    marginTop: "70px",
   },
-  
   textarea: {
     width: "60%",
     height: "250px",
     padding: "20px",
-    fontSize: "22px", // ✨ Dongle은 약간 크게!
+    fontSize: "22px",
     borderRadius: "12px",
     border: "1px solid #333",
     resize: "none",
@@ -123,30 +125,13 @@ const styles = {
     marginBottom: "10px",
     marginLeft: "280px",
     lineHeight: "1.6",
-    fontFamily: "'Dongle', sans-serif", // ✅ 글씨체 적용
+    fontFamily: "'Dongle', sans-serif",
     color: "#333",
-    marginTop: "10px", // ← 원하는 만큼 조정
-
   },
-  
-  
-  
-  saveBtnWrapper: {
-    width: "80%",
-    display: "flex",
-    justifyContent: "flex-end", // ✅ 오른쪽 정렬
-    marginLeft: "280px", // ✅ 글칸에 맞추기
-  },
-  scrollBox: {
-    width: "100%",
-    overflowX: "auto",
-    marginBottom: "24px",
-  },
-
   colorScroll: {
     display: "flex",
-    overflowX: "auto",       // 스크롤 생성
-    maxWidth: "250px",       // ✅ 4개 정도만 보이게 제한
+    overflowX: "auto",
+    maxWidth: "250px",
     paddingBottom: "8px",
     marginLeft: "280px",
   },
@@ -156,10 +141,8 @@ const styles = {
     borderRadius: "6px",
     marginRight: "8px",
     cursor: "pointer",
-    flexShrink: 0,   // ✅ 축소 금지 → 스크롤 가능
+    flexShrink: 0,
   },
-  
-
   saveBtn: {
     backgroundColor: "#ffee77",
     border: "none",
@@ -173,3 +156,4 @@ const styles = {
 };
 
 export default WriteLetter;
+
