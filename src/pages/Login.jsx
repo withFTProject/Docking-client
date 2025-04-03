@@ -1,55 +1,52 @@
 import React from "react";
 
 const Login = () => {
-  const BACKEND_KAKAO_LOGIN_URL = "http://localhost:8085/oauth2/authorization/kakao";
-
   const handleLogin = () => {
-    window.location.href = BACKEND_KAKAO_LOGIN_URL;
+    // localhost 주소를 백엔드 ngrok URL로 변경
+    window.location.href = "https://7dd6-210-94-220-229.ngrok-free.app/oauth2/authorization/kakao";
   };
 
   return (
-    <div style={styles.container}>
+    <div style={styles.wrapper}>
       <img src="/logo.png" alt="logo" style={styles.logo} />
-      <button onClick={handleLogin} style={styles.kakaoButton}>
-  <img src="/kakao_icon.png" alt="카카오 아이콘" style={styles.kakaoIcon} />
-  카카오 로그인
-</button>
-
+      <button style={styles.kakaoButton} onClick={handleLogin}>
+        <img src="/kakao_icon.png" alt="카카오 아이콘" style={styles.icon} />
+        카카오 로그인
+      </button>
     </div>
   );
 };
 
 const styles = {
-  container: {
+  wrapper: {
     height: "100vh",
-    backgroundColor: "white",
     display: "flex",
     flexDirection: "column",
     justifyContent: "center",
-    alignItems: "center",
+    alignItems: "center", // ✅ 수직 수평 가운데 정렬
+    backgroundColor: "white",
   },
   logo: {
-    width: "380px",         // 로켓 이미지 크기 키움 (기존 240px → 300px)
-    marginBottom: "55px",   // 로켓과 버튼 사이 간격 크게 (기존 30px → 60px)
+    width: "320px",
+    marginBottom: "40px",
   },
   kakaoButton: {
     backgroundColor: "#FEE500",
     border: "none",
     padding: "12px 24px",
     fontSize: "16px",
+    fontWeight: "bold",
     borderRadius: "8px",
     cursor: "pointer",
-    fontWeight: "bold",
     display: "flex",
     alignItems: "center",
-    gap: "8px",
+    gap: "10px",
+    boxShadow: "0 2px 5px rgba(0, 0, 0, 0.15)",
   },
-  kakaoIcon: {
+  icon: {
     width: "20px",
     height: "20px",
   },
 };
 
 export default Login;
-
-
